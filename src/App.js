@@ -2,6 +2,22 @@ import "./App.css";
 import React, { useEffect, useState } from "react";
 import Quagga from "quagga";
 
+function getMedian(arr) {
+  const newArr = [...arr]; // copy the array before sorting, otherwise it mutates the array passed in, which is generally undesireable
+  newArr.sort((a, b) => a - b);
+  const half = Math.floor(newArr.length / 2);
+  if (newArr.length % 2 === 1) {
+    return newArr[half];
+  }
+  return (newArr[half - 1] + newArr[half]) / 2;
+}
+
+function getMedianOfCodeErrors(decodedCodes) {
+  const errors = decodedCodes.flatMap((x) => x.error);
+  const medianOfErrors = getMedian(errors);
+  return medianOfErrors;
+}
+
 function App() {
   // eslint-disable-next-line no-unused-vars
   function test() {
@@ -49,17 +65,17 @@ function App() {
         },
         decoder: {
           readers: [
-            "code_128_reader",
+            // "code_128_reader",
             "ean_reader",
-            "ean_8_reader",
-            "code_39_reader",
-            "code_39_vin_reader",
-            "codabar_reader",
+            // "ean_8_reader",
+            // "code_39_reader",
+            // "code_39_vin_reader",
+            // "codabar_reader",
             "upc_reader",
-            "upc_e_reader",
-            "i2of5_reader",
-            "2of5_reader",
-            "code_93_reader",
+            // "upc_e_reader",
+            // "i2of5_reader",
+            // "2of5_reader",
+            // "code_93_reader",
           ],
           locate: true,
         },
@@ -72,8 +88,17 @@ function App() {
         alert("Initialization finished. Ready to start");
         Quagga.start();
         Quagga.onDetected((data) => {
+
+          if (data) {
+            console.log(data);
+          }
           if (data?.codeResult?.code) {
-            setBarcode(data.codeResult.code);
+            const err = getMedianOfCodeErrors(data.codeResult.decodedCodes);
+            const code = data.codeResult.code;
+            const acceptable = err < 0.094;
+            if (acceptable) {
+              setBarcode(data.codeResult.code);
+            }
           }
         });
       }
